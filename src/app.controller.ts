@@ -6,6 +6,8 @@ import {
   Put,
   Param,
   Body,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ReportType, data } from './data';
 import { v4 as uuid } from 'uuid';
@@ -65,8 +67,15 @@ export class AppController {
 
     return data.report[reportIndex];
   }
+  @HttpCode(204) //no content
   @Delete(':id')
-  deleteReport() {
-    return 'deleted';
+  deleteReport(@Param('id') id: string) {
+    const reportIndex = data.report.findIndex((report) => report.id === id);
+
+    if (reportIndex === -1) return;
+
+    data.report.splice(reportIndex, 1); //(start index , amount to remove)
+
+    return;
   }
 }
