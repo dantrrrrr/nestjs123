@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ReportType, data } from './data';
 import { v4 as uuid } from 'uuid';
+import { ReportReponseDto } from './dtos/report.dto';
 interface ReportData {
   source: string;
   amount: number;
@@ -11,17 +12,26 @@ interface UpdateReportData {
 }
 @Injectable()
 export class AppService {
-  getAllReports(type: ReportType) {
-    return data.report.filter((report) => report.type === type);
-  }
-
-  getReportById(type: ReportType, id: string) {
+  getAllReports(type: ReportType): ReportReponseDto[] {
     return data.report
       .filter((report) => report.type === type)
-      .find((report) => report.id === id);
+      .map((report) => new ReportReponseDto(report));
   }
 
-  createReport(type: ReportType, { amount, source }: ReportData) {
+  getReportById(type: ReportType, id: string): ReportReponseDto {
+    const report = data.report
+      .filter((report) => report.type === type)
+      .find((report) => report.id === id);
+
+    if (!report) return;
+
+    return new ReportReponseDto(report);
+  }
+
+  createReport(
+    type: ReportType,
+    { amount, source }: ReportData,
+  ): ReportReponseDto {
     const newReport = {
       id: uuid(),
       source,
@@ -31,9 +41,13 @@ export class AppService {
       type: type === 'income' ? ReportType.INCOME : ReportType.EXPENSE,
     };
     data.report.push(newReport);
-    return newReport;
+    return new ReportReponseDto(newReport);
   }
-  updateReport(type: ReportType, id: string, body: UpdateReportData) {
+  updateReport(
+    type: ReportType,
+    id: string,
+    body: UpdateReportData,
+  ): ReportReponseDto {
     const reportToUpdate = data.report
       .filter((report) => report.type === type)
       .find((report) => report.id === id);
@@ -48,7 +62,7 @@ export class AppService {
       updated_at: new Date(),
     };
 
-    return data.report[reportIndex];
+    return new ReportReponseDto(data.report[reportIndex]);
   }
   deleteReport(id: string) {
     const reportIndex = data.report.findIndex((report) => report.id === id);
